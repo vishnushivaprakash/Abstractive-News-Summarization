@@ -1,0 +1,5 @@
+streamlit==1.31.0
+torch
+transformers==4.49.0
+rouge-score
+sentencepiece
