@@ -31,33 +31,46 @@ class NewsSummarizer:
         )
 
         # Length configurations aligned to user-defined summary targets:
-        #   Short  → 1 sentence,  max 20 words  (~25 tokens)
-        #   Medium → 2–3 sentences, ~50 words   (~65 tokens)
-        #   Long   → 4–6 sentences, ~100 words  (~130 tokens)
+        #   Short  → Approximately 1/3 of original content
+        #   Medium → Approximately 2/3 of original content
+        #   Long   → Elaborated content with additional context
         self.length_configs = {
-            "Short":  {"max_length": 30,  "min_length": 10},
-            "Medium": {"max_length": 70,  "min_length": 35},
-            "Long":   {"max_length": 140, "min_length": 80}
+            "Short":  {"max_length": 60,  "min_length": 20},
+            "Medium": {"max_length": 150, "min_length": 80},
+            "Long":   {"max_length": 300, "min_length": 150}
         }
 
     def summarize(self, text, length_option="Medium"):
         """
-        Generates a multi-sentence abstractive summary using BART-Large-CNN.
+        Generates a multi-sentence abstractive summary using BART-Large-CNN or LLM.
 
         The model rewrites the core content of the article into a concise,
         formally-toned summary — never copying sentences directly.
 
         Summary length is controlled by the length_option parameter:
-            - "Short"  → 1 sentence,   ~20 words
-            - "Medium" → 2–3 sentences, ~50 words
-            - "Long"   → 4–6 sentences, ~100 words
+            - "Short"  → ~1/3 of original length
+            - "Medium" → ~2/3 of original length
+            - "Long"   → Elaborated with context and detail
         """
         config = self.length_configs.get(length_option, self.length_configs["Medium"])
 
+        min_len = config["min_length"]
+        max_len = config["max_length"]
+
+        if length_option == "Long":
+            input_tokens = len(self.summarizer.tokenizer.encode(text, truncation=True, max_length=1024))
+            target_length = input_tokens * 2
+            
+            min_len = min(target_length, 1000)
+            max_len = min(target_length + 50, 1024)
+            
+            if max_len <= min_len:
+                max_len = min_len + 10
+
         summary = self.summarizer(
             text,
-            max_length=config["max_length"],
-            min_length=config["min_length"],
+            max_length=max_len,
+            min_length=min_len,
             do_sample=False,
             num_beams=6,           # 6 beams for high-quality abstractive output
             truncation=True,

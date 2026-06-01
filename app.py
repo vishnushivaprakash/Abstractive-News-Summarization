@@ -30,10 +30,10 @@ def main():
     # 4. Configuration Section
     st.subheader("Configuration")
     length_option = st.selectbox(
-        "Select Summary Length Target:",
+        "Select Summary Length Type:",
         ("Short", "Medium", "Long"),
         index=1,
-        help="Short: 1 sentence, ~20 words. Medium: 2–3 sentences, ~50 words. Long: 4–6 sentences, ~100 words."
+        help="Short: ~1/3 original length. Medium: ~2/3 original length. Long: Double the original length (e.g., 50 lines to 100 lines)."
     )
     
     # 5. Execution Section
